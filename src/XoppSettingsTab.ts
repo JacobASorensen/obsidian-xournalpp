@@ -1,5 +1,6 @@
 import XoppPlugin from "main";
 import { App, Setting, PluginSettingTab } from "obsidian";
+import ConfirmChoiceModal from "./modals/ConfirmChoiceModal";
 
 export class XoppSettingsTab extends PluginSettingTab {
     plugin: XoppPlugin;
@@ -21,7 +22,19 @@ export class XoppSettingsTab extends PluginSettingTab {
                 toggle
                     .setValue(this.plugin.settings.autoExport)
                     .onChange(async (value) => {
-                        this.plugin.settings.autoExport = value;
+                        if (value) {
+                            new ConfirmChoiceModal(this.plugin.app, "Are you sure?", 
+                                "Turning this on will overwrite any PDF file that shares \
+                                the same name with a xopp file in the same directory.\
+                                e.g. if myfile.pdf and myfile.xopp are both in a directory, \
+                                myfile.pdf will be replaced with the pdf version of myfile.xopp",(value2) => {
+                                this.plugin.settings.autoExport = value2;
+                                toggle.setValue(value2);
+                            }).open();
+                        } else {
+                            this.plugin.settings.autoExport = value;
+                        }
+
                         await this.plugin.saveSettings();
                     })
             });
